@@ -1,0 +1,4 @@
+[submodule "Open-Hadith-Data"]
+	path = Open-Hadith-Data
+	url = https://github.com/mhashim6/Open-Hadith-Data
+	shallow = true
