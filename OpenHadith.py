@@ -5,6 +5,10 @@
     Author  : Tarek Eldeeb
 '''
 
+__all__ = []
+__version__ = '0.1'
+__author__ = 'Tarek Eldeeb'
+
 import argparse
 import fnmatch
 import os
@@ -38,7 +42,7 @@ def aggregate(books):
     for outFile in file_patterns:
         counter = 1
         aggregate_out_name = "OpenHadith-" + outFile + ".csv"
-        print("Creating %s .." % aggregate_out_name)
+        print("\nCreating %s .." % aggregate_out_name)
         aggregate_out = open(aggregate_out_name, "w")
         data_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Open-Hadith-Data")
         for root, _, filenames in os.walk(data_folder):
@@ -65,11 +69,22 @@ def print_books_list():
 
 
 def process(files):
-    print("Processing %d file(s) .." % len(files))
+    print("\nProcessing %d file(s) .." % len(files))
+
+
+def print_banner():
+    banner = """   ___                                    _ _ _   _
+  /___\_ __   ___ _ __     /\  /\__ _  __| (_) |_| |__
+ //  // '_ \ / _ \ '_ \   / /_/ / _` |/ _` | | __| '_ \\
+/ \_//| |_) |  __/ | | | / __  / (_| | (_| | | |_| | | |
+\___/ | .__/ \___|_| |_| \/ /_/ \__,_|\__,_|_|\__|_| |_|
+      |_|   Github.com/TarekEldeeb/OpenHadith"""
+    print(banner)
+    print("\t\t\tVersion: " + __version__)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Open Hadith Data Aggregator Script")
+    parser = argparse.ArgumentParser(description="Open Hadith Data Aggregator and Processor Script")
     parser.add_argument("-b", "--books", type=str,
                         help="Comma-Separated list of books to be aggregated. Default (all).")
     parser.add_argument("-l", "--list-books", action='store_true',
@@ -86,6 +101,7 @@ if __name__ == "__main__":
                 exit(-1)
     else:
         args["books"] = list(dict_to_long.keys())
+    print_banner()
     aggregated_files = []
     aggregate(args["books"])
     args['no_processing'] and exit(0)
