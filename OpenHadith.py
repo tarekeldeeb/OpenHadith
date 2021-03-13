@@ -1,18 +1,17 @@
 # !/usr/bin/env python
 
-'''
+"""
     NAME    : Hadith Dataset
     Author  : Tarek Eldeeb
-'''
-
-__all__ = []
-__version__ = '0.1'
-__author__ = 'Tarek Eldeeb'
+"""
 
 import argparse
-import fnmatch
+from fnmatch import filter
 import os
 from os import path
+
+__version__: str = '0.1'
+__author__ = 'Tarek Eldeeb'
 
 dict_to_arabic = {
     "Musnad_Ahmad_Ibn-Hanbal": "مسند_أحمد",
@@ -39,6 +38,7 @@ dict_to_long = {
 
 def aggregate(books):
     file_patterns = {"NoTashkeel": "*ahadith.utf8.csv", "Tashkeel": "*mushakkala*.csv"}
+    books_long = [dict_to_long[x] for x in books]
     for outFile in file_patterns:
         counter = 1
         aggregate_out_name = "OpenHadith-" + outFile + ".csv"
@@ -46,17 +46,18 @@ def aggregate(books):
         aggregate_out = open(aggregate_out_name, "w")
         data_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Open-Hadith-Data")
         for root, _, filenames in os.walk(data_folder):
-            for filename in fnmatch.filter(filenames, file_patterns[outFile]):
-                book_name = root.split(os.path.sep)[-1]
-                book_lines = 1
-                with open(path.join(data_folder, path.join(book_name, filename)), encoding="utf8") as f:
-                    for line in f:
-                        book_lines = book_lines + 1
-                        if len(line) > 1:
-                            line = str(counter) + "," + dict_to_arabic[book_name] + "," + line
-                            counter = counter + 1
-                            aggregate_out.write(line)
-                print("  " + "{:5d}".format(book_lines) + " hadiths from " + book_name)
+            for filename in filter(filenames, file_patterns[outFile]):
+                book_name: str = root.split(os.path.sep)[-1]
+                if book_name in books_long:
+                    book_lines = 1
+                    with open(path.join(data_folder, path.join(book_name, filename)), encoding="utf8") as f:
+                        for line in f:
+                            book_lines = book_lines + 1
+                            if len(line) > 1:
+                                line = str(counter) + "," + dict_to_arabic[book_name] + "," + line
+                                counter = counter + 1
+                                aggregate_out.write(line)
+                    print("  " + "{:5d}".format(book_lines) + " hadiths from " + book_name)
         aggregate_out.close()
         aggregated_files.append(aggregate_out_name)
     return
@@ -80,7 +81,7 @@ def print_banner():
 \___/ | .__/ \___|_| |_| \/ /_/ \__,_|\__,_|_|\__|_| |_|
       |_|   Github.com/TarekEldeeb/OpenHadith"""
     print(banner)
-    print("\t\t\tVersion: " + __version__)
+    print("\t\t\tVersion: " + __version__ + "\tLicense: Waqf 2.0")
 
 
 if __name__ == "__main__":
@@ -92,7 +93,9 @@ if __name__ == "__main__":
     parser.add_argument("--no-processing", action='store_true',
                         help="Do not process the aggregated files", default=False)
     args = vars(parser.parse_args())
-    args['list_books'] and print_books_list() and exit(0)
+    if args['list_books']:
+        print_books_list()
+        exit(0)
     if args["books"] is not None and args["books"].lower() != "all":
         args["books"] = [s.strip() for s in args["books"].split(",")]
         for b in args["books"]:  # Check if books exist
