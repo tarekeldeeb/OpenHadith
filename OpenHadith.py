@@ -7,8 +7,7 @@
 
 import argparse
 from fnmatch import filter
-import os
-from os import path
+from os import path, walk
 
 __version__: str = '0.1'
 __author__ = 'Tarek Eldeeb'
@@ -44,10 +43,10 @@ def aggregate(books):
         aggregate_out_name = "OpenHadith-" + outFile + ".csv"
         print("\nCreating %s .." % aggregate_out_name)
         aggregate_out = open(aggregate_out_name, "w")
-        data_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Open-Hadith-Data")
-        for root, _, filenames in os.walk(data_folder):
+        data_folder = path.join(path.dirname(path.realpath(__file__)), "Open-Hadith-Data")
+        for root, _, filenames in walk(data_folder):
             for filename in filter(filenames, file_patterns[outFile]):
-                book_name: str = root.split(os.path.sep)[-1]
+                book_name: str = root.split(path.sep)[-1]
                 if book_name in books_long:
                     book_lines = 1
                     with open(path.join(data_folder, path.join(book_name, filename)), encoding="utf8") as f:
@@ -57,7 +56,7 @@ def aggregate(books):
                                 line = str(counter) + "," + dict_to_arabic[book_name] + "," + line
                                 counter = counter + 1
                                 aggregate_out.write(line)
-                    print("  " + "{:5d}".format(book_lines) + " hadiths from " + book_name)
+                    print("  " + "{:5d}".format(book_lines) + " hadith from " + book_name)
         aggregate_out.close()
         aggregated_files.append(aggregate_out_name)
     return
@@ -75,10 +74,10 @@ def process(files):
 
 def print_banner():
     banner = """   ___                                    _ _ _   _
-  /___\_ __   ___ _ __     /\  /\__ _  __| (_) |_| |__
- //  // '_ \ / _ \ '_ \   / /_/ / _` |/ _` | | __| '_ \\
-/ \_//| |_) |  __/ | | | / __  / (_| | (_| | | |_| | | |
-\___/ | .__/ \___|_| |_| \/ /_/ \__,_|\__,_|_|\__|_| |_|
+  /___\\_ __   ___ _ __     /\\  /\\__ _  __| (_) |_| |__
+ //  // '_ \\ / _ \\ '_ \\   / /_/ / _` |/ _` | | __| '_ \\
+/ \\_//| |_) |  __/ | | | / __  / (_| | (_| | | |_| | | |
+\\___/ | .__/ \\___|_| |_| \\/ /_/ \\__,_|\\__,_|_|\\__|_| |_|
       |_|   Github.com/TarekEldeeb/OpenHadith"""
     print(banner)
     print("\t\t\tVersion: " + __version__ + "\tLicense: Waqf 2.0")
