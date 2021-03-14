@@ -1,13 +1,13 @@
 # !/usr/bin/env python
 
 """
-    NAME    : Hadith Dataset
+    NAME    : Open Hadith Dataset
     Author  : Tarek Eldeeb
 """
-
 import argparse
 from fnmatch import filter
 from os import path, walk
+import pandas as pd
 
 __version__: str = '0.1'
 __author__ = 'Tarek Eldeeb'
@@ -34,8 +34,10 @@ dict_to_long = {
     "dar": "Sunan_Al-Darimi",
     "tir": "Sunan_Al-Tirmidhi"}
 
+base_columns = ["فهرس", "كتاب", "فهرس_داخلي", "سند_ومتن"]
 
-def aggregate(books):
+
+def aggregate(books, sample):
     file_patterns = {"NoTashkeel": "*ahadith.utf8.csv", "Tashkeel": "*mushakkala*.csv"}
     books_long = [dict_to_long[x] for x in books]
     for outFile in file_patterns:
@@ -43,6 +45,7 @@ def aggregate(books):
         aggregate_out_name = "OpenHadith-" + outFile + ".csv"
         print("\nCreating %s .." % aggregate_out_name)
         aggregate_out = open(aggregate_out_name, "w")
+        aggregate_out.write('{0}\n'.format(','.join(base_columns)))
         data_folder = path.join(path.dirname(path.realpath(__file__)), "Open-Hadith-Data")
         for root, _, filenames in walk(data_folder):
             for filename in filter(filenames, file_patterns[outFile]):
@@ -51,12 +54,14 @@ def aggregate(books):
                     book_lines = 1
                     with open(path.join(data_folder, path.join(book_name, filename)), encoding="utf8") as f:
                         for line in f:
-                            book_lines = book_lines + 1
-                            if len(line) > 1:
+                            if sample is not None and sample < book_lines:
+                                continue
+                            if len(line) > 2:
                                 line = str(counter) + "," + dict_to_arabic[book_name] + "," + line
                                 counter = counter + 1
+                                book_lines = book_lines + 1
                                 aggregate_out.write(line)
-                    print("  " + "{:5d}".format(book_lines) + " hadith from " + book_name)
+                    print("  " + "{:5d}".format(book_lines-1) + " hadith from " + book_name)
         aggregate_out.close()
         aggregated_files.append(aggregate_out_name)
     return
@@ -69,7 +74,10 @@ def print_books_list():
 
 
 def process(files):
-    print("\nProcessing %d file(s) .." % len(files))
+    print("\nProcessing file: %s .." % files[0])
+    df = pd.read_csv(files[0])
+
+
 
 
 def print_banner():
@@ -91,6 +99,8 @@ if __name__ == "__main__":
                         help="List available books and exit.", default=False)
     parser.add_argument("--no-processing", action='store_true',
                         help="Do not process the aggregated files", default=False)
+    parser.add_argument('--sample', nargs='?', const=10, type=int,
+                        help="Include a sample only from each book. Default size 10.")
     args = vars(parser.parse_args())
     if args['list_books']:
         print_books_list()
@@ -105,6 +115,6 @@ if __name__ == "__main__":
         args["books"] = list(dict_to_long.keys())
     print_banner()
     aggregated_files = []
-    aggregate(args["books"])
+    aggregate(args["books"], args["sample"])
     args['no_processing'] and exit(0)
     process(aggregated_files)
