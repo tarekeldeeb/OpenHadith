@@ -61,7 +61,7 @@ def aggregate(books, sample):
                                 counter = counter + 1
                                 book_lines = book_lines + 1
                                 aggregate_out.write(line)
-                    print("  " + "{:5d}".format(book_lines-1) + " hadith from " + book_name)
+                    print("  " + "{:5d}".format(book_lines - 1) + " hadith from " + book_name)
         aggregate_out.close()
         aggregated_files.append(aggregate_out_name)
     return
@@ -73,11 +73,25 @@ def print_books_list():
         print(" %s\t %s" % (book_shortname, dict_to_long[book_shortname]))
 
 
+def sm_split(full_hadith, index):
+    splitters = ['صلى الله عليه وسلم يقول', 'أن النبي صلى الله عليه وسلم', 'قال صلى الله عليه وسلم',
+                 'كان رسول الله صلى الله عليه وسلم', 'صلى الله عليه وسلم قال', 'قال رسول الله صلى الله عليه وسلم']
+    for s in splitters:
+        if s in full_hadith:
+            return (s,) + tuple(full_hadith.split(s, 1))
+    print("Hadith %d was not split." % (index + 1))
+    return " ", " ", " "
+
+
 def process(files):
     print("\nProcessing file: %s .." % files[0])
     df = pd.read_csv(files[0])
-
-
+    df['متن'] = ""
+    df['مرفوع'] = ""
+    df['سند'] = ""
+    for i, fullHad in enumerate(df['سند_ومتن']):
+        df.loc[i, 'مرفوع'], df.loc[i, 'متن'], df.loc[i, 'سند'] = sm_split(fullHad, i)
+    df.to_csv(files[0], index=False, header=True)
 
 
 def print_banner():
