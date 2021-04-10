@@ -8,6 +8,7 @@ import argparse
 from fnmatch import filter
 from os import path, walk
 import pandas as pd
+from MyTimer import Timer
 
 __version__: str = '0.1'
 __author__ = 'Tarek Eldeeb'
@@ -35,6 +36,10 @@ dict_to_long = {
     "tir": "Sunan_Al-Tirmidhi"}
 
 base_columns = ["فهرس", "كتاب", "فهرس_داخلي", "سند_ومتن"]
+
+splitters = [['قال رسول الله صلى الله عليه وسلم', 51], ['صلى الله عليه وسلم قال', 50],
+             ['أن النبي صلى الله عليه وسلم', 15], ['كان رسول الله صلى الله عليه وسلم', 10],
+             ['صلى الله عليه وسلم يقول', 9], ['قال النبي صلى الله عليه وسلم', 7], ['قال صلى الله عليه وسلم', 1]]
 
 
 def aggregate(books, sample):
@@ -74,11 +79,10 @@ def print_books_list():
 
 
 def sm_split(full_hadith, index):
-    splitters = ['صلى الله عليه وسلم يقول', 'أن النبي صلى الله عليه وسلم', 'قال صلى الله عليه وسلم',
-                 'كان رسول الله صلى الله عليه وسلم', 'صلى الله عليه وسلم قال', 'قال رسول الله صلى الله عليه وسلم']
     for s in splitters:
-        if s in full_hadith:
-            return (s,) + tuple(full_hadith.split(s, 1))
+        if s[0] in full_hadith:
+            s[1] = s[1] + 1
+            return (s[0],) + tuple(full_hadith.split(s[0], 1))
     print("Hadith %d was not split." % (index + 1))
     return " ", " ", " "
 
@@ -89,9 +93,12 @@ def process(files):
     df['متن'] = ""
     df['مرفوع'] = ""
     df['سند'] = ""
+    for row in splitters:
+        row[1] = 0
     for i, fullHad in enumerate(df['سند_ومتن']):
         df.loc[i, 'مرفوع'], df.loc[i, 'متن'], df.loc[i, 'سند'] = sm_split(fullHad, i)
     df.to_csv(files[0], index=False, header=True)
+    print('Splitters = \n %s' % sorted(splitters, key=lambda x: x[1], reverse=True))
 
 
 def print_banner():
@@ -131,4 +138,5 @@ if __name__ == "__main__":
     aggregated_files = []
     aggregate(args["books"], args["sample"])
     args['no_processing'] and exit(0)
-    process(aggregated_files)
+    with Timer('process(aggregated_files)'):
+        process(aggregated_files)
