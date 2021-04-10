@@ -79,10 +79,13 @@ def print_books_list():
 
 
 def sm_split(full_hadith, index):
-    for s in splitters:
-        if s[0] in full_hadith:
-            s[1] = s[1] + 1
-            return (s[0],) + tuple(full_hadith.split(s[0], 1))
+    for s in ['رسول الله', 'النبي', 'نبي الله']:
+        if s in full_hadith:
+            before, after = full_hadith.split(s, 1)
+            if 'قال' in before:
+                sanad = before.rsplit('قال', 1)[0]
+                matn = before.rsplit('قال', 1)[1] + " " + s + " " + after
+                return (s,) + (matn, sanad)
     print("Hadith %d was not split." % (index + 1))
     return " ", " ", " "
 
